@@ -67,5 +67,7 @@ killall yes
 Result
 
 CPU usage controlled
+
 System responsiveness restored
+
 No process terminated
