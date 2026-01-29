@@ -1,0 +1,11 @@
+Before Control:
+- CPU hog process consumed ~95% CPU
+- System responsiveness degraded
+
+After Control:
+- CPU usage limited to ~30%
+- System remains responsive
+- CPU hog process continues safely
+
+Conclusion:
+System responsiveness successfully restored using lightweight control mechanisms.
