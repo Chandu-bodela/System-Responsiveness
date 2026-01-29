@@ -6,177 +6,231 @@
 
 ## 📌 Overview
 
-In real-world systems, users often experience lag, freezes, or unresponsiveness even when CPU and memory appear sufficient.
-This happens when one or more aggressive processes monopolize CPU time, starving interactive or critical tasks.
+In real-world Linux systems, users often experience lag, freezes, or unresponsiveness even when CPU and memory appear sufficient.  
+This usually occurs when one or more aggressive background processes monopolize CPU time, starving interactive or critical tasks.
 
-**System Responsiveness Guard** is a lightweight Linux-based monitoring tool that demonstrates how system responsiveness can be observed, detected, and protected using OS-level scheduling behavior — without killing processes.
+**System Responsiveness Guard** is a lightweight, user-space monitoring tool that demonstrates how system responsiveness degradation can be **observed, detected, and reported** using OS-level scheduling behavior — without killing any processes.
 
 ---
 
 ## 🎯 Problem Statement
 
-Modern Linux schedulers prioritize fairness but not always user-perceived responsiveness.
+Modern Linux schedulers prioritize fairness, but they do not always guarantee **user-perceived responsiveness**.
 
 Common issues include:
-- Background CPU-heavy tasks causing UI lag
-- Builds or scripts freezing shared machines
-- Interactive processes being starved under load
+- CPU-heavy background jobs causing UI lag
+- Build processes freezing shared systems
+- Interactive tasks being delayed under load
 
 This project demonstrates:
-- How responsiveness degradation can be detected
-- How system behavior changes under CPU stress
-- A foundation for kernel-assisted control mechanisms
+- How responsiveness degradation occurs
+- How scheduling delays can be detected
+- A foundation for safe system-level control mechanisms
 
 ---
 
 ## 🧠 Key Idea
 
 Instead of terminating processes, the system:
+
 - Continuously monitors scheduling delay
 - Detects responsiveness degradation
-- Warns when the system becomes less responsive
+- Warns the user when the system becomes less responsive
 
-This aligns with real OS design goals: **control, not destruction**.
+> **Control, not destruction** — aligned with real OS design principles.
 
 ---
 
-## 🏗️ Architecture (High Level)
+## 🏗️ High-Level Architecture
 
-```
-CPU-Heavy Task  --> Linux Scheduler --> Responsiveness Guard
-```
+CPU-Heavy Task --> Linux Scheduler --> Responsiveness Guard
+
 
 ---
 
 ## 🔍 What This Project Does
 
 ### Monitoring
-- Measures scheduling delay using high-resolution timers
-- Observes how often execution is delayed by the scheduler
+- Uses high-resolution timers
+- Measures scheduling latency
 
 ### Detection
-- Rule-based threshold detection
-- Flags system responsiveness degradation
+- Threshold-based detection
+- Flags responsiveness degradation
 
 ### Control (Conceptual)
 - Priority reduction
 - CPU throttling
 - Core restriction
 
-> ⚠️ No processes are killed.
+> ⚠️ No processes are killed in this implementation.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- Language: C
-- Platform: Linux (Ubuntu 22.04 / WSL2)
-- Tools: gcc, make
+- **Language:** C  
+- **Platform:** Linux (Ubuntu 22.04 / WSL2)  
+- **Tools:** gcc, make  
 
 ---
 
 ## 📂 Project Structure
 
-```
-resp_guard/
-├── resp_guard.c
-├── Makefile
+System-Responsiveness/
+├── resp_guard/
+│ ├── resp_guard.c
+│ ├── Makefile
 ├── README.md
-```
+├── ALL_COMMANDS.md
+├── docs/
+│ └── System_Responsiveness_Guard_Report.pdf
 
 ---
 
 ## 🚀 How to Run
 
+### 1️⃣ Install Dependencies
 ```bash
 sudo apt update
 sudo apt install -y build-essential
+
+---
+
+### 2️⃣ Build the Project
+cd resp_guard
 make
+---
+
+### 3️⃣ Run the Program
 ./resp_guard
-```
 
 ---
 
-## 🔥 Simulating System Load
+### 🔥 Simulating CPU Load
 
-In another terminal:
-```bash
+Open another terminal and run:
+
 yes > /dev/null
-```
 
 ---
 
-## 🛑 Stopping
 
-Press **CTRL + C** in both terminals.
+This command intentionally creates a CPU-hogging process to test system responsiveness.
 
----
+### 🛑 Stopping the Programs
 
-## 📊 Sample Output
+Press CTRL + C in both terminals.
 
-```
+----
+
+### 📊 Sample Output
 Scheduling delay: 2030 microseconds
 WARNING: System responsiveness degraded!
-```
+----
 
----
+### 🔐 Kernel-Level Extension (Design Only)
 
-## 🔐 Kernel-Level Extension (Design)
+Full kernel modules are not loaded due to WSL2 limitations.
+The design below applies to a standard Linux kernel.
 
-> Due to WSL2 kernel limitations, full kernel modules are not loaded.  
-> The design below applies to a standard Linux kernel.
+Kernel Monitoring
 
-### Why Kernel Assistance?
-User-space monitoring detects issues but cannot enforce scheduling control safely.
+task_struct inspection
 
-### Kernel Monitoring
-- task_struct inspection
-- sched_switch tracepoints
-- CPU runtime and latency tracking
+sched_switch tracepoints
 
-### Detection Logic
-```
+CPU runtime and latency tracking
+
+Detection Logic
 IF CPU usage exceeds threshold
 AND interactive latency increases
 THEN mark process disruptive
-```
 
-### Runtime Control
-- Reduce scheduling priority
-- Limit CPU cores (affinity)
-- CPU throttling via cgroups
+Runtime Control
 
-### Recovery
-- Restore original priority
-- Remove restrictions once stable
+Reduce scheduling priority
 
----
+Apply CPU affinity
 
-## 🛡️ Safety Considerations
+Throttle CPU via cgroups
 
-- No kernel panics
-- No process termination
-- Minimal kernel interaction
-- Safe unload behavior
+Recovery
 
----
+Restore original priority
 
-## 🔮 Future Enhancements
+Remove restrictions once system stabilizes
+----
 
-- Loadable Kernel Module (LKM)
-- cgroups-based CPU control
-- Adaptive thresholds
-- Logging & visualization
+### 🛡️ Safety Considerations
 
----
+No kernel panics
 
-## 🏁 Conclusion
+No process termination
 
-This project demonstrates how minimal OS-level observation can detect responsiveness issues and how kernel-assisted control can safely restore system usability.
+Minimal system impact
 
----
+Safe monitoring behavior
+----
 
-## 👤 Author
+### 🔮 Future Enhancements
 
-**Chandu**  
-Operating Systems Project
+Loadable Kernel Module (LKM)
+
+cgroups-based enforcement
+
+Adaptive thresholds
+
+Logging and visualization support
+----
+
+### 📚 References & Learning Resources
+Linux Scheduling & Responsiveness
+
+Linux CFS Scheduler Design:
+https://www.kernel.org/doc/html/latest/scheduler/sched-design-CFS.html
+
+Linux Scheduling Policies (sched, nice):
+https://man7.org/linux/man-pages/man7/sched.7.html
+
+Process Monitoring & Control
+
+top command:
+https://man7.org/linux/man-pages/man1/top.1.html
+
+ps command:
+https://man7.org/linux/man-pages/man1/ps.1.html
+
+nice / renice:
+https://man7.org/linux/man-pages/man1/nice.1.html
+
+https://man7.org/linux/man-pages/man8/renice.8.html
+
+CPU Stress Testing
+
+yes command:
+https://man7.org/linux/man-pages/man1/yes.1.html
+
+Related Work
+
+System76 Scheduler (Pop!_OS):
+https://github.com/pop-os/system76-scheduler
+
+Kernel-Level Concepts
+
+task_struct (Linux Kernel):
+https://elixir.bootlin.com/linux/latest/source/include/linux/sched.h
+
+Scheduler Tracepoints:
+https://www.kernel.org/doc/html/latest/trace/events-sched.html
+----
+
+### Control Mechanisms
+
+Control Groups (cgroups v2):
+https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html
+-----
+
+### 🏁 Conclusion
+
+This project shows how minimal OS-level observation can detect responsiveness issues and how kernel-assisted mechanisms can safely restore system usability without disrupting running processes.
