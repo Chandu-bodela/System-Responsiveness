@@ -1,230 +1,223 @@
-# 🛡️ System Responsiveness Guard
+# 🚀 System Responsiveness Guard (SRG)
 
 **Preventing System Slowdowns Caused by Resource-Hungry Processes**
 
----
+System Responsiveness Guard (SRG) is a kernel-assisted monitoring and control mechanism designed to detect processes that degrade overall system responsiveness and apply safe, reversible constraints to restore interactivity — without terminating any process.
 
-## 📌 Overview
+This project addresses a common real-world issue where systems become sluggish even though CPU and memory resources appear sufficient, typically due to aggressive background workloads starving interactive tasks.
 
-In real-world Linux systems, users often experience lag, freezes, or unresponsiveness even when CPU and memory appear sufficient.  
-This usually occurs when one or more aggressive background processes monopolize CPU time, starving interactive or critical tasks.
+# 📌 Problem Statement
 
-**System Responsiveness Guard** is a lightweight, user-space monitoring tool that demonstrates how system responsiveness degradation can be **observed, detected, and reported** using OS-level scheduling behavior — without killing any processes.
+Modern operating systems prioritize fairness in CPU scheduling but do not explicitly guarantee user-perceived responsiveness. As a result:
 
----
+A single CPU-hogging process can make the system lag.
 
-## 🎯 Problem Statement
+Interactive applications become slow or unresponsive.
 
-Modern Linux schedulers prioritize fairness, but they do not always guarantee **user-perceived responsiveness**.
+Multi-user systems become difficult to use under load.
 
-Common issues include:
-- CPU-heavy background jobs causing UI lag
-- Build processes freezing shared systems
-- Interactive tasks being delayed under load
+SRG introduces a lightweight kernel-level mechanism that:
 
-This project demonstrates:
-- How responsiveness degradation occurs
-- How scheduling delays can be detected
-- A foundation for safe system-level control mechanisms
+Monitors per-process scheduling behavior.
 
----
+Detects disruptive processes.
 
-## 🧠 Key Idea
+Dynamically applies non-destructive controls.
 
-Instead of terminating processes, the system:
+Restores normal behavior once stability returns.
 
-- Continuously monitors scheduling delay
-- Detects responsiveness degradation
-- Warns the user when the system becomes less responsive
+# 🎯 Goals
 
-> **Control, not destruction** — aligned with real OS design principles.
+Protect interactive responsiveness.
 
----
+Avoid killing or crashing processes.
 
-## 🏗️ High-Level Architecture
+Require minimal kernel modifications.
 
-CPU-Heavy Task --> Linux Scheduler --> Responsiveness Guard
+Use simple, explainable detection logic.
+
+Work on standard Linux kernels.
+
+# 🏗️ System Architecture
++----------------------+
+| User Workloads      |
+| (stress, builds)    |
++----------+-----------+
+           |
+           v
++----------------------+
+| SRG Kernel Module   |
+|  - Monitoring       |
+|  - Detection        |
+|  - Control Engine   |
++----------+-----------+
+           |
+           v
++----------------------+
+| Linux Scheduler     |
+| (CFS + cgroups +    |
+|  nice values)       |
++----------------------+
+
+# 🔍 Kernel-Level Monitoring
+
+SRG periodically scans all running processes and records:
+
+Total CPU runtime
+
+Context switch counts
+
+Scheduling priority
+
+Execution state
+
+From these values, SRG computes:
+
+CPU usage per interval
+
+Frequency of yielding
+
+Run vs wait behavior
+
+This data allows SRG to infer which processes are monopolizing CPU.
+
+# 🧠 Detection Logic
+
+A process is considered disruptive if:
+
+It consumes high CPU within a short interval.
+
+It exhibits very low context switching.
+
+This pattern persists for multiple consecutive intervals.
+
+## Rule (Simplified)
+If (CPU_usage > CPU_THRESHOLD)
+AND (context_switches < CTX_THRESHOLD)
+for N intervals
+→ Mark as disruptive
 
 
----
+This rule is:
 
-## 🔍 What This Project Does
+Deterministic
 
-### Monitoring
-- Uses high-resolution timers
-- Measures scheduling latency
+Explainable
 
-### Detection
-- Threshold-based detection
-- Flags responsiveness degradation
+Low overhead
 
-### Control (Conceptual)
-- Priority reduction
-- CPU throttling
-- Core restriction
+No machine learning or black-box heuristics are used.
 
-> ⚠️ No processes are killed in this implementation.
+# 🎛️ Control Mechanism
 
----
+## When a disruptive process is detected, SRG applies temporary and reversible controls:
 
-## 🛠️ Tech Stack
+Possible Controls
 
-- **Language:** C  
-- **Platform:** Linux (Ubuntu 22.04 / WSL2)  
-- **Tools:** gcc, make  
+Increase nice value (lower priority)
 
----
+Move process to CPU-limited cgroup
 
-## 📂 Project Structure
+Restrict CPU affinity
 
-System-Responsiveness/
-├── resp_guard/
-│ ├── resp_guard.c
-│ ├── Makefile
-├── README.md
-├── ALL_COMMANDS.md
-├── docs/
-│ └── System_Responsiveness_Guard_Report.pdf
+## Restoration
 
----
+If the process behavior normalizes, SRG restores:
 
-## 🚀 How to Run
+Original priority
 
-### 1️⃣ Install Dependencies
-```bash
-sudo apt update
-sudo apt install -y build-essential
----
+Original CPU access
 
+Processes are never terminated.
 
+# 🔁 State Model
+NORMAL → THROTTLED → NORMAL
 
-## **🛠️ Installation**
+# 🛡️ Safety Features
 
-Update system packages and install required build tools:
+No kernel scheduler rewrite.
 
-```bash
-sudo apt update
-sudo apt install -y build-essential
----
-## 🚀 Build and Run
-# Build the Project
-bash
+Rate-limited control actions.
 
-cd resp_guard
-make
--------------
-# Run the Program
-bash
+Ignores kernel threads.
 
-./resp_guard
+Never modifies PID 1.
 
-###🔥 Simulating CPU Load
-Open another terminal and execute:
+Bounded memory usage.
 
-bash
+Safe failure behavior.
 
+# 🧪 Demonstration
+## Before SRG
 yes > /dev/null
-This command intentionally creates a CPU-hogging process to test system responsiveness under stress.
 
-### 🛑 Stopping the Programs
-Press CTRL + C in both terminals to stop execution.
 
-📊 Sample Output
-text
-Copy code
-Scheduling delay: 2030 microseconds
-WARNING: System responsiveness degraded!
-🔐 Kernel-Level Extension (Design Only)
-Full kernel modules are not loaded due to WSL2 limitations.
-The following design applies to a standard Linux kernel environment.
+Observe:
 
-Kernel Monitoring
-task_struct inspection
+CPU at 100%
 
-sched_switch tracepoints
+Terminal lag
 
-CPU runtime and latency tracking
+Slow UI response
 
-Detection Logic
-IF CPU usage exceeds a defined threshold
+## After SRG
+sudo insmod srg.ko
 
-AND interactive latency increases
 
-THEN mark the process as disruptive
+Observe:
 
-Runtime Control
-Reduce scheduling priority
+CPU hog is throttled
 
-Apply CPU affinity
+Interactive shell responsive
 
-Throttle CPU using cgroups
+Background process still running
 
-Recovery Strategy
-Restore original priority
+# 📊 Example Output
+PID    CPU(ms)   CTX   STATE
+2314   850       2     THROTTLED
+1142   45        60    NORMAL
 
-Remove restrictions once system stabilizes
+# 📁 Repository Structure
+System-Responsiveness/
+ ├── src/
+ │   └── srg_module.c
+ ├── scripts/
+ │   └── demo.sh
+ ├── README.md
+ └── report.md
 
-🛡️ Safety Considerations
-No kernel panics
+# ⚙️ Build & Run
+make
+sudo insmod srg.ko
+dmesg | tail
 
-No forced process termination
 
-Minimal system impact
+## To remove:
 
-Safe, non-intrusive monitoring
+sudo rmmod srg
 
-🔮 Future Enhancements
-Loadable Kernel Module (LKM)
+# 🚧 Current Status
 
-cgroups-based enforcement
+Monitoring: Implemented / Prototype
 
-Adaptive thresholds
+Detection: Implemented
 
-Logging and visualization support
+Control: Prototype
 
-📚 References & Learning Resources
-Linux Scheduling
-CFS Scheduler Design
-https://www.kernel.org/doc/html/latest/scheduler/sched-design-CFS.html
+Full kernel module: Proof-of-concept
 
-Scheduling Policies (sched, nice)
-https://man7.org/linux/man-pages/man7/sched.7.html
+This project focuses on demonstrating feasibility and correctness rather than production readiness.
 
-Process Monitoring
-top command
-https://man7.org/linux/man-pages/man1/top.1.html
+# 🔮 Future Work
 
-ps command
-https://man7.org/linux/man-pages/man1/ps.1.html
+Integrate with eBPF
 
-nice
-https://man7.org/linux/man-pages/man1/nice.1.html
+Add cgroup v2 support
 
-renice
-https://man7.org/linux/man-pages/man8/renice.8.html
+Per-user responsiveness policies
 
-CPU Stress Testing
-yes command
-https://man7.org/linux/man-pages/man1/yes.1.html
+Visualization tools
 
-Related Work
-System76 Scheduler (Pop!_OS)
-https://github.com/pop-os/system76-scheduler
+# 👨‍💻 Authors
 
-Kernel Concepts
-task_struct
-https://elixir.bootlin.com/linux/latest/source/include/linux/sched.h
-
-Scheduler Tracepoints
-https://www.kernel.org/doc/html/latest/trace/events-sched.html
-
-Control Mechanisms
-Control Groups (cgroups v2)
-https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html
-
-🏁 Conclusion
-This project illustrates how minimal OS-level observation can identify system responsiveness issues and how kernel-assisted mechanisms can safely restore usability without disrupting running processes.
-EOF
-
-markdown
-Copy code
+Team: Kinetic Koders
