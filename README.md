@@ -95,41 +95,32 @@ System-Responsiveness/
 sudo apt update
 sudo apt install -y build-essential
 
----
 
-## 2️⃣ Build the Project
-```bash
+2️⃣ Build the Project
 cd resp_guard
 make
-----
+
 3️⃣ Run the Program
 ./resp_guard
 
-
-
-###🔥 Simulating CPU Load
+🔥 Simulating CPU Load
 
 Open another terminal and run:
 
 yes > /dev/null
 
----
-
 
 This command intentionally creates a CPU-hogging process to test system responsiveness.
 
-### 🛑 Stopping the Programs
+🛑 Stopping the Programs
 
 Press CTRL + C in both terminals.
 
-----
-
-### 📊 Sample Output
+📊 Sample Output
 Scheduling delay: 2030 microseconds
 WARNING: System responsiveness degraded!
-----
 
-### 🔐 Kernel-Level Extension (Design Only)
+🔐 Kernel-Level Extension (Design Only)
 
 Full kernel modules are not loaded due to WSL2 limitations.
 The design below applies to a standard Linux kernel.
@@ -143,9 +134,12 @@ sched_switch tracepoints
 CPU runtime and latency tracking
 
 Detection Logic
+
 IF CPU usage exceeds threshold
+
 AND interactive latency increases
-THEN mark process disruptive
+
+THEN mark process as disruptive
 
 Runtime Control
 
@@ -160,9 +154,8 @@ Recovery
 Restore original priority
 
 Remove restrictions once system stabilizes
-----
 
-### 🛡️ Safety Considerations
+🛡️ Safety Considerations
 
 No kernel panics
 
@@ -171,9 +164,8 @@ No process termination
 Minimal system impact
 
 Safe monitoring behavior
-----
 
-### 🔮 Future Enhancements
+🔮 Future Enhancements
 
 Loadable Kernel Module (LKM)
 
@@ -182,55 +174,52 @@ cgroups-based enforcement
 Adaptive thresholds
 
 Logging and visualization support
-----
 
-### 📚 References & Learning Resources
+📚 References & Learning Resources
 Linux Scheduling & Responsiveness
 
-Linux CFS Scheduler Design:
+CFS Scheduler Design
 https://www.kernel.org/doc/html/latest/scheduler/sched-design-CFS.html
 
-Linux Scheduling Policies (sched, nice):
+Scheduling Policies (sched, nice)
 https://man7.org/linux/man-pages/man7/sched.7.html
 
 Process Monitoring & Control
 
-top command:
+top command
 https://man7.org/linux/man-pages/man1/top.1.html
 
-ps command:
+ps command
 https://man7.org/linux/man-pages/man1/ps.1.html
 
-nice / renice:
+nice / renice
 https://man7.org/linux/man-pages/man1/nice.1.html
 
 https://man7.org/linux/man-pages/man8/renice.8.html
 
 CPU Stress Testing
 
-yes command:
+yes command
 https://man7.org/linux/man-pages/man1/yes.1.html
 
 Related Work
 
-System76 Scheduler (Pop!_OS):
+System76 Scheduler (Pop!_OS)
 https://github.com/pop-os/system76-scheduler
 
 Kernel-Level Concepts
 
-task_struct (Linux Kernel):
+task_struct
 https://elixir.bootlin.com/linux/latest/source/include/linux/sched.h
 
-Scheduler Tracepoints:
+Scheduler Tracepoints
 https://www.kernel.org/doc/html/latest/trace/events-sched.html
-----
 
-### Control Mechanisms
+Control Mechanisms
 
-Control Groups (cgroups v2):
+Control Groups (cgroups v2)
 https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html
------
 
-### 🏁 Conclusion
+🏁 Conclusion
 
-This project shows how minimal OS-level observation can detect responsiveness issues and how kernel-assisted mechanisms can safely restore system usability without disrupting running processes.
+This project demonstrates how minimal OS-level observation can detect system responsiveness issues and how kernel-assisted mechanisms can safely restore usability without disrupting running processes.
