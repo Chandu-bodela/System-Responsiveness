@@ -94,39 +94,51 @@ System-Responsiveness/
 ```bash
 sudo apt update
 sudo apt install -y build-essential
+---
 
 
-2️⃣ Build the Project
+
+## **🛠️ Installation**
+
+Update system packages and install required build tools:
+
+```bash
+sudo apt update
+sudo apt install -y build-essential
+---
+## 🚀 Build and Run
+# Build the Project
+bash
+
 cd resp_guard
 make
+-------------
+# Run the Program
+bash
 
-3️⃣ Run the Program
 ./resp_guard
 
-🔥 Simulating CPU Load
+###🔥 Simulating CPU Load
+Open another terminal and execute:
 
-Open another terminal and run:
+bash
 
 yes > /dev/null
+This command intentionally creates a CPU-hogging process to test system responsiveness under stress.
 
-
-This command intentionally creates a CPU-hogging process to test system responsiveness.
-
-🛑 Stopping the Programs
-
-Press CTRL + C in both terminals.
+### 🛑 Stopping the Programs
+Press CTRL + C in both terminals to stop execution.
 
 📊 Sample Output
+text
+Copy code
 Scheduling delay: 2030 microseconds
 WARNING: System responsiveness degraded!
-
 🔐 Kernel-Level Extension (Design Only)
-
 Full kernel modules are not loaded due to WSL2 limitations.
-The design below applies to a standard Linux kernel.
+The following design applies to a standard Linux kernel environment.
 
 Kernel Monitoring
-
 task_struct inspection
 
 sched_switch tracepoints
@@ -134,39 +146,34 @@ sched_switch tracepoints
 CPU runtime and latency tracking
 
 Detection Logic
-
-IF CPU usage exceeds threshold
+IF CPU usage exceeds a defined threshold
 
 AND interactive latency increases
 
-THEN mark process as disruptive
+THEN mark the process as disruptive
 
 Runtime Control
-
 Reduce scheduling priority
 
 Apply CPU affinity
 
-Throttle CPU via cgroups
+Throttle CPU using cgroups
 
-Recovery
-
+Recovery Strategy
 Restore original priority
 
 Remove restrictions once system stabilizes
 
 🛡️ Safety Considerations
-
 No kernel panics
 
-No process termination
+No forced process termination
 
 Minimal system impact
 
-Safe monitoring behavior
+Safe, non-intrusive monitoring
 
 🔮 Future Enhancements
-
 Loadable Kernel Module (LKM)
 
 cgroups-based enforcement
@@ -176,39 +183,35 @@ Adaptive thresholds
 Logging and visualization support
 
 📚 References & Learning Resources
-Linux Scheduling & Responsiveness
-
+Linux Scheduling
 CFS Scheduler Design
 https://www.kernel.org/doc/html/latest/scheduler/sched-design-CFS.html
 
 Scheduling Policies (sched, nice)
 https://man7.org/linux/man-pages/man7/sched.7.html
 
-Process Monitoring & Control
-
+Process Monitoring
 top command
 https://man7.org/linux/man-pages/man1/top.1.html
 
 ps command
 https://man7.org/linux/man-pages/man1/ps.1.html
 
-nice / renice
+nice
 https://man7.org/linux/man-pages/man1/nice.1.html
 
+renice
 https://man7.org/linux/man-pages/man8/renice.8.html
 
 CPU Stress Testing
-
 yes command
 https://man7.org/linux/man-pages/man1/yes.1.html
 
 Related Work
-
 System76 Scheduler (Pop!_OS)
 https://github.com/pop-os/system76-scheduler
 
-Kernel-Level Concepts
-
+Kernel Concepts
 task_struct
 https://elixir.bootlin.com/linux/latest/source/include/linux/sched.h
 
@@ -216,10 +219,12 @@ Scheduler Tracepoints
 https://www.kernel.org/doc/html/latest/trace/events-sched.html
 
 Control Mechanisms
-
 Control Groups (cgroups v2)
 https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html
 
 🏁 Conclusion
+This project illustrates how minimal OS-level observation can identify system responsiveness issues and how kernel-assisted mechanisms can safely restore usability without disrupting running processes.
+EOF
 
-This project demonstrates how minimal OS-level observation can detect system responsiveness issues and how kernel-assisted mechanisms can safely restore usability without disrupting running processes.
+markdown
+Copy code
