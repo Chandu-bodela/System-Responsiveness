@@ -40,9 +40,13 @@ Work on standard Linux kernels.
 
 # 🏗️ System Architecture
 +----------------------+
+---
 | User Workloads      |
+---
 | (stress, builds)    |
+---
 +----------+-----------+
+---
            |
            v
 +----------------------+
@@ -179,11 +183,17 @@ PID    CPU(ms)   CTX   STATE
 
 # 📁 Repository Structure
 System-Responsiveness/
+---
  ├── src/
+ ---
  │   └── srg_module.c
+ ---
  ├── scripts/
+ ---
  │   └── demo.sh
+ ---
  ├── README.md
+ ---
  └── report.md
 
 # ⚙️ Build & Run
