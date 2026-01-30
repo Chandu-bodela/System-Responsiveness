@@ -97,17 +97,17 @@ sudo apt install -y build-essential
 
 ---
 
-### 2️⃣ Build the Project
+## 2️⃣ Build the Project
+```bash
 cd resp_guard
 make
----
-
-### 3️⃣ Run the Program
+----
+3️⃣ Run the Program
 ./resp_guard
 
----
 
-### 🔥 Simulating CPU Load
+
+###🔥 Simulating CPU Load
 
 Open another terminal and run:
 
